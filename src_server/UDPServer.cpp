@@ -26,9 +26,10 @@ int main()
             boost::array<char, 100> recv_buf;
             udp::endpoint remote_endpoint;
             boost::system::error_code error;
-            socket.receive_from(boost::asio::buffer(recv_buf),
+            size_t len = socket.receive_from(boost::asio::buffer(recv_buf),
                                 remote_endpoint, 0, error);
-            if(strcmp(recv_buf.data(),"")) std::cout<<recv_buf.data();//don't know why it doesn't work TODO
+            if(strcmp(recv_buf.data(),""))
+                std::cout << std::string(reinterpret_cast<const char*>(recv_buf.data()), len) << std::endl;
 
             if (error && error != boost::asio::error::message_size)
                 throw boost::system::system_error(error);
