@@ -33,8 +33,10 @@ int main()
 
             if (error && error != boost::asio::error::message_size)
                 throw boost::system::system_error(error);
-
             std::string message = "dziala dla mnie";//make_daytime_string();
+
+            if(strcmp(recv_buf.data(),"quit"))
+                message="Disconnected";
 
             boost::system::error_code ignored_error;
             socket.send_to(boost::asio::buffer(message),
