@@ -45,3 +45,5 @@ TIN_Server
 
 cmake_install.cmake
 
+.idea
+
