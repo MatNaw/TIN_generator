@@ -17,10 +17,6 @@ int sendingMessages(const udp::endpoint& receiver_endpoint,udp::socket* socket){
     std::string message;
     while(true) {
         boost::this_thread::sleep(boost::posix_time::milliseconds(250));
-        //boost::unique_lock<boost::mutex> lock(mut);
-        /*while(!response){
-            cond.wait(lock);
-        }*/
         std::cout << "Wyszedlem"<<std::endl;
         message="next packet";
         socket->send_to(boost::asio::buffer(message), receiver_endpoint);
@@ -30,7 +26,6 @@ int sendingMessages(const udp::endpoint& receiver_endpoint,udp::socket* socket){
             std::cout<<stopTransmission<<std::endl;
             if(stopTransmission) break;
         }
-
     }
     message="Disconnected";
     socket->send_to(boost::asio::buffer(message), receiver_endpoint);
@@ -44,8 +39,6 @@ int receivingMessages(udp::endpoint& sender_endpoint,udp::socket* socket){
         boost::this_thread::sleep(boost::posix_time::milliseconds(250));
         boost::array<char, 128> recv_buf;
         boost::system::error_code error;
-        //udp::endpoint sender_endpoint;
-        //boost::unique_lock<boost::mutex> lock(mut);
         std::cout<<"Odbieram"<<std::endl;
         size_t len = socket->receive_from(boost::asio::buffer(recv_buf), sender_endpoint,0,error);
         std::cout << std::string(reinterpret_cast<const char*>(recv_buf.data()), len)<<std::endl;
@@ -56,9 +49,6 @@ int receivingMessages(udp::endpoint& sender_endpoint,udp::socket* socket){
             break;
         }
         std::cout<<"Powiadomienie"<<std::endl;
-        //response = true;
-        //lock.unlock();
-        //cond.notify_one();
     }
     return 0;
 }
@@ -91,16 +81,6 @@ int main()
                 sendThread.join();
                 recvThread.join();
             }
-            /*
-            if(std::string(reinterpret_cast<const char*>(recv_buf.data()), len)=="quit")
-            {
-                std::cout<<recv_buf.data();
-                message="Ja wykurwiam";
-            }
-            boost::system::error_code ignored_error;
-            socket.send_to(boost::asio::buffer(message),
-                           remote_endpoint, 0, ignored_error);
-                           */
         }
     }
     catch (std::exception& e)
