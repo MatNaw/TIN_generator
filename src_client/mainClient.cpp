@@ -9,46 +9,55 @@ using boost::asio::ip::udp;
 using boost::thread;
 
 
-int sendingMessages(const udp::endpoint& server_endpoint,udp::socket* socket){
-    std::string message;
-    int i=0;
-    while(true) {
+int sendingMessages(const udp::endpoint &server_endpoint, udp::socket *socket) {
+
+    std::string messageSent;
+
+    int messageCount = 0;
+
+    while (true) {
         boost::this_thread::sleep(boost::posix_time::milliseconds(250));
-        std::cout << "Wyszedlem"<<std::endl;
-        if(i!=100)
-            message="client";
+        std::cout << "Wyszedlem" << std::endl;
+
+        if (messageCount != 100)
+            messageSent = "client";
         else
-            message="quit";
-        socket->send_to(boost::asio::buffer(message), server_endpoint);
-        std::cout << "Wyslalem"<<std::endl;
-        if(message=="quit") break;
-        ++i;
+            messageSent = "quit";
+
+        socket->send_to(boost::asio::buffer(messageSent), server_endpoint);
+        std::cout << "Wyslalem wiadomosc numer:" << messageCount << std::endl;
+
+        if (messageSent == "quit") break;
+
+        ++messageCount;
     }
     return 0;
 
 }
 
-int receivingMessages(udp::endpoint& server_endpoint,udp::socket* socket){
-    std::string message;
-    while(true) {
+int receivingMessages(udp::endpoint &server_endpoint, udp::socket *socket) {
+
+    while (true) {
         boost::this_thread::sleep(boost::posix_time::milliseconds(250));
         boost::array<char, 100> recv_buf;
         boost::system::error_code error;
-        std::cout<<"Odbieram"<<std::endl;
-        size_t len = socket->receive_from(boost::asio::buffer(recv_buf), server_endpoint,0,error);
-        std::cout << std::string(reinterpret_cast<const char*>(recv_buf.data()), len)<<std::endl;
-        if(std::string(reinterpret_cast<const char*>(recv_buf.data()))=="Disconnected") break;
-        std::cout<<"Powiadomienie"<<std::endl;
+
+        std::cout << "Odbieram" << std::endl;
+
+        size_t len = socket->receive_from(boost::asio::buffer(recv_buf), server_endpoint, 0, error);
+        std::cout << std::string(reinterpret_cast<const char *>(recv_buf.data()), len) << std::endl;
+
+        if (std::string(reinterpret_cast<const char *>(recv_buf.data())) == "Disconnected") break;
+
+        std::cout << "Powiadomienie" << std::endl;
     }
     return 0;
 }
 
-int main(int argc, char* argv[])
-{
-    try
-    {
-        if (argc != 3)
-        {
+int main(int argc, char *argv[]) {
+
+    try {
+        if (argc != 3) {
             std::cerr << "Usage: client <host> <portnumber>" << std::endl;
             return 1;
         }
@@ -62,15 +71,16 @@ int main(int argc, char* argv[])
 
         udp::socket socket(io_service);
         socket.open(udp::v4());
-        std::string message = "does it work?";
-        boost::thread sendThread(boost::bind(&sendingMessages,server_endpoint,&socket));
-        boost::thread recvThread(boost::bind(&receivingMessages,server_endpoint,&socket));
+
+        boost::thread sendThread(boost::bind(&sendingMessages, server_endpoint, &socket));
+        boost::thread recvThread(boost::bind(&receivingMessages, server_endpoint, &socket));
+
         sendThread.join();
         recvThread.join();
+
         socket.close();
     }
-    catch (std::exception& e)
-    {
+    catch (std::exception &e) {
         std::cerr << e.what() << std::endl;
     }
 
