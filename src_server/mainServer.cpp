@@ -38,7 +38,7 @@ int sendingMessages(const udp::endpoint &receiver_endpoint, udp::socket *socket)
 int receivingMessages(udp::endpoint &sender_endpoint, udp::socket *socket) {
 
     while (true) {
-        boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+//        boost::this_thread::sleep(boost::posix_time::milliseconds(250));
         boost::array<char, 128> recv_buf;
         boost::system::error_code error;
 
