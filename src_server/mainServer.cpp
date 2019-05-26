@@ -12,8 +12,6 @@ using boost::asio::ip::udp;
 boost::mutex mut;
 bool stopTransmission = false;
 
-int SERVER_PORT = 2048;
-
 int sendingMessages(const udp::endpoint &receiver_endpoint, udp::socket *socket) {
     std::string messageSent;
 
@@ -61,11 +59,19 @@ int receivingMessages(udp::endpoint &sender_endpoint, udp::socket *socket) {
 }
 
 
-int main() {
+int main(int argc, char *argv[]) {
     try {
+
+        if (argc != 2) {
+            std::cerr << "Required arguments: <portNumber>" << std::endl;
+            return 1;
+        }
+
+        int serverPort = std::stoi(argv[1]);
+
         boost::asio::io_service io_service;
 
-        udp::socket socket(io_service, udp::endpoint(udp::v4(), SERVER_PORT));
+        udp::socket socket(io_service, udp::endpoint(udp::v4(), serverPort));
 
         for (;;) {
             boost::array<char, 100> recv_buf;

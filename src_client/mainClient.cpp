@@ -58,14 +58,17 @@ int main(int argc, char *argv[]) {
 
     try {
         if (argc != 3) {
-            std::cerr << "Usage: client <host> <portnumber>" << std::endl;
+            std::cerr << "Required arguments: <host> <portNumber>" << std::endl;
             return 1;
         }
+
+        std::string host = argv[1];
+        std::string port = argv[2];
 
         boost::asio::io_service io_service;
 
         udp::resolver resolver(io_service);
-        udp::resolver::query query(argv[1], argv[2]);
+        udp::resolver::query query(host, port);
         udp::resolver::iterator iter = resolver.resolve(query);
         udp::endpoint server_endpoint = iter->endpoint();
 
