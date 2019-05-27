@@ -2,12 +2,6 @@
 // Created by mivine on 26.05.19.
 //
 
-#include <iostream>
-#include <boost/array.hpp>
-#include <boost/asio.hpp>
-#include <boost/thread.hpp>
-#include <boost/bind.hpp>
-#include <boost/date_time.hpp>
 #include "Client.h"
 
 using boost::asio::ip::udp;
