@@ -17,6 +17,7 @@
 #include <boost/date_time.hpp>
 
 #define RECEIVE_BUFFER_SIZE 100
+#define RESPONSE_SIZE 100
 
 using boost::asio::ip::udp;
 
@@ -25,22 +26,48 @@ class Server {
 public:
     Server(boost::asio::io_service& io_service, int exposedPort);
 
+    void processUserInput();
     void start();
 
 private:
     boost::mutex mut;
     bool stopTransmission = false;
-
-
+    std::string userCommand;
 
     udp::endpoint remoteEndpoint;
     udp::socket socket;
 
+    boost::posix_time::ptime startOfResponse;
+    boost::posix_time::ptime startOfReceive;
+    boost::posix_time::ptime endOfResponse;
+    boost::posix_time::ptime endOfReceive;
+
+    boost::posix_time::ptime temporaryStartOfReceive;
+    boost::posix_time::ptime temporaryStartOfResponse;
+    boost::posix_time::ptime temporaryEndOfReceive;
+    boost::posix_time::ptime temporaryEndOfResponse;
+
+    long long totalSentResponses = 0;
+    long long totalReceivedMessages = 0;
+
+    long long totalResponseSpeed = 0;
+    long long totalReceiveSpeed = 0;
+
+    long long currentResponseSpeed = 0;
+    long long currentReceiveSpeed = 0;
+
     boost::system::error_code error;
-    boost::array<char, RECEIVE_BUFFER_SIZE> recv_buf;
+    boost::array<char, RECEIVE_BUFFER_SIZE> receiveBuf;
+    boost::array<char, RESPONSE_SIZE> responseBuf;
 
     void sendResponse();
     void receiveMessage();
+
+    void updateResponseStats();
+    void updateReceiveStats();
+
+    void calculateTransmissionSpeed();
+    void showTransmissionSpeed();
 };
 
 

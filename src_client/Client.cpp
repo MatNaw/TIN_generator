@@ -4,46 +4,47 @@
 
 #include "Client.h"
 
+#define MESSAGES_TO_SEND 10000
+
 using boost::asio::ip::udp;
 using boost::thread;
 
 void Client::sendMessages() {
 
-    std::string messageSent;
-
     while (true) {
-        boost::this_thread::sleep(boost::posix_time::milliseconds(250));
-        std::cout << "Wyszedlem" << std::endl;
+        boost::this_thread::sleep(boost::posix_time::milliseconds(5));
 
-        if (messageCount != 100)
-            messageSent = "client";
-        else
-            messageSent = "quit";
+        if (sentMessageCount != MESSAGES_TO_SEND) {
+            socket.send_to(boost::asio::buffer(sendBuf), server_endpoint);
+        }
+        else {
+            std::cout << "quit" ;
+            socket.send_to(boost::asio::buffer("quit"), server_endpoint);
+            break;
+        }
 
-        socket.send_to(boost::asio::buffer(messageSent), server_endpoint);
-        std::cout << "Wyslalem wiadomosc numer:" << messageCount << std::endl;
+        std::cout << "Wyslalem wiadomosc numer:" << sentMessageCount << std::endl;
 
-        if (messageSent == "quit") break;
-
-        ++messageCount;
+        ++sentMessageCount;
     }
 }
-
 
 void Client::receiveMessages() {
 
     while (true) {
-        boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(5));
         boost::system::error_code error;
 
-        std::cout << "Odbieram" << std::endl;
+        std::cout << "Odbieram " << receivedMessageCount <<  std::endl;
 
-        size_t len = socket.receive_from(boost::asio::buffer(recv_buf), server_endpoint, 0, error);
-        std::cout << std::string(reinterpret_cast<const char *>(recv_buf.data()), len) << std::endl;
+        size_t len = socket.receive_from(boost::asio::buffer(recvBuf), server_endpoint, 0, error);
+//        std::cout << std::string(reinterpret_cast<const char *>(recvBuf.data()), len) << std::endl;
 
-        if (std::string(reinterpret_cast<const char *>(recv_buf.data())) == "Disconnected") break;
+        if (std::string(reinterpret_cast<const char *>(recvBuf.data())) == "Disconnected") break;
 
-        std::cout << "Powiadomienie" << std::endl;
+        std::cout << receivedMessageCount << std::endl;
+
+        ++receivedMessageCount;
     }
 }
 

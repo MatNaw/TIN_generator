@@ -17,6 +17,7 @@ using boost::thread;
 
 
 #define RECEIVE_BUFFER_SIZE 100
+#define SEND_BUFFER_SIZE 100
 
 class Client {
 
@@ -29,10 +30,11 @@ private:
     void receiveMessages();
     void sendMessages();
 
+    int sentMessageCount = 0;
+    int receivedMessageCount = 0;
 
-    int messageCount = 0;
-
-    boost::array<char, RECEIVE_BUFFER_SIZE> recv_buf;
+    boost::array<char, RECEIVE_BUFFER_SIZE> recvBuf;
+    boost::array<char, SEND_BUFFER_SIZE> sendBuf;
 
     udp::resolver resolver;
     udp::resolver::query query;
