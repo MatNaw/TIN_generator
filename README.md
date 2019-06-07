@@ -22,7 +22,7 @@ A nastepnie:
 
     ./TIN_Server <portNumber>
 
-W katalogu src_server aby zbudowac i uruchomic, trzeba wpisac:
+W katalogu src_client aby zbudowac i uruchomic, trzeba wpisac:
 
     make
 
