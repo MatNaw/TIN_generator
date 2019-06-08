@@ -6,6 +6,7 @@
 
 #define DISCONNECT_MESSAGE "Disconnected"
 #define TRANSMISSION_END_MESSAGE "quit"
+#define TRANSMISSION_BEGIN_MESSAGE "begin"
 
 #define PRECISION 100
 
@@ -31,23 +32,26 @@ void Server::sendResponse() {
     while (true) {
         boost::this_thread::sleep(boost::posix_time::milliseconds(5));
 
-        size_t bytesSent = socket.send_to(boost::asio::buffer(responseBuf), remoteEndpoint);
-//        std::cout << "Wyslalem " << std::endl;
+        if(!stopTransmission){
+            size_t bytesSent = socket.send_to(boost::asio::buffer(responseBuf), remoteEndpoint);
+    //        std::cout << "Wyslalem " << std::endl;
 
-        {
-            boost::unique_lock<boost::mutex> lock(mut);
+            {
+                boost::unique_lock<boost::mutex> lock(mut);
 
-            if (stopTransmission) {
-                break;
+                /* if (stopTransmission) {
+                    break;
+                } */
+            }
+
+            if(bytesSent > 0) {
+                updateResponseStats();
             }
         }
-
-        if(bytesSent > 0) {
-            updateResponseStats();
-        }
+        else socket.send_to(boost::asio::buffer(DISCONNECT_MESSAGE), remoteEndpoint);
     }
 
-    socket.send_to(boost::asio::buffer(DISCONNECT_MESSAGE), remoteEndpoint);
+    //socket.send_to(boost::asio::buffer(DISCONNECT_MESSAGE), remoteEndpoint);
 }
 
 void Server::receiveMessage() {
@@ -61,7 +65,11 @@ void Server::receiveMessage() {
         if (std::string(reinterpret_cast<const char *>(receiveBuf.data()), len).find(TRANSMISSION_END_MESSAGE) != std::string::npos ) {
             boost::unique_lock<boost::mutex> lock(mut);
             stopTransmission = true;
-            break;
+            //break;
+        }
+        else if (std::string(reinterpret_cast<const char *>(receiveBuf.data()), len).find(TRANSMISSION_BEGIN_MESSAGE) != std::string::npos ){
+            std::cout << "begin\n";
+            stopTransmission = false;
         }
 
         updateReceiveStats();

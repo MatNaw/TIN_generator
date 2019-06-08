@@ -50,3 +50,5 @@ cmake_install.cmake
 
 .idea
 
+TIN_workspace.code-workspace
+.vscode/

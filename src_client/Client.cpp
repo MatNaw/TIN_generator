@@ -4,13 +4,13 @@
 
 #include "Client.h"
 
-#define MESSAGES_TO_SEND 10000
+#define MESSAGES_TO_SEND 2000
 
 using boost::asio::ip::udp;
 using boost::thread;
 
 void Client::sendMessages() {
-
+    socket.send_to(boost::asio::buffer("begin"), server_endpoint);
     while (true) {
         boost::this_thread::sleep(boost::posix_time::milliseconds(5));
 
