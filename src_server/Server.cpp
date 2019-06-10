@@ -51,6 +51,8 @@ void Server::sendResponse() {
             }
         } else if (!disconnected) {
             socket.send_to(boost::asio::buffer(DISCONNECT_MESSAGE), remoteEndpoint);
+            calculateTransmissionSpeed();
+            showTransmissionSpeed();
             disconnected = true;
             resetStats();
         }
@@ -75,7 +77,6 @@ void Server::receiveMessage() {
             boost::unique_lock<boost::mutex> lock(mut);
             stopTransmission = true;
             std::cout << "Receiving messages stopped" << std::endl << std::endl;
-            resetStats();
         }
 
         if (len > 0 && !stopTransmission) {
