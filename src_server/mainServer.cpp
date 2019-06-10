@@ -7,8 +7,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    int exposedPort = std::stoi(argv[1]);
-    long long intervalBetweenResponses = std::stoll(argv[2]);
+    unsigned exposedPort = std::stoi(argv[1]);
+    unsigned long long intervalBetweenResponses = std::stoull(argv[2]);
 
     boost::asio::io_service io_service;
 

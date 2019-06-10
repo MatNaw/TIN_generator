@@ -36,8 +36,6 @@ void Client::sendMessages() {
             showTransmissionSpeed();
             break;
         }
-
-        std::cout << "Wyslalem wiadomosc numer:" << totalSentMessages << std::endl;
     }
 }
 
@@ -56,7 +54,6 @@ void Client::receiveMessages() {
         }
 
         if (len > 0) {
-            std::cout << "odbieram" << std::endl;
             updateReceiveStats();
         }
     }

@@ -16,7 +16,7 @@
 
 using boost::asio::ip::udp;
 
-Server::Server(boost::asio::io_service &io_service, int exposedPort, unsigned long long responseInterval)
+Server::Server(boost::asio::io_service &io_service, unsigned exposedPort, unsigned long long responseInterval)
         : socket(udp::socket(io_service, udp::endpoint(udp::v4(), exposedPort))), intervalBetweenResponses(responseInterval) {
 }
 

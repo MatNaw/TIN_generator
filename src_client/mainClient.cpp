@@ -13,8 +13,8 @@ int main(int argc, char *argv[]) {
 
     std::string host = argv[1];
     std::string port = argv[2];
-    long long numberOfPackagesToSend = std::stoll(argv[3]);
-    long long desiredSendingSpeed = std::stol(argv[4]);
+    unsigned long long numberOfPackagesToSend = std::stoull(argv[3]);
+    unsigned long long desiredSendingSpeed = std::stoull(argv[4]);
 
     Client client(io_service, host, port, numberOfPackagesToSend, desiredSendingSpeed);
 

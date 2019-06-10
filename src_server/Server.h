@@ -24,7 +24,7 @@ using boost::asio::ip::udp;
 class Server {
 
 public:
-    Server(boost::asio::io_service& io_service, int exposedPort, unsigned long long responseInterval);
+    Server(boost::asio::io_service& io_service, unsigned exposedPort, unsigned long long responseInterval);
 
     void processUserInput();
     void start();
