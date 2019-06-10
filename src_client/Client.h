@@ -17,12 +17,12 @@ using boost::thread;
 
 
 #define RECEIVE_BUFFER_SIZE 100
-#define SEND_BUFFER_SIZE 100
+#define MESSAGE_SIZE 100
 
 class Client {
 
 public:
-    Client(boost::asio::io_service& io_service, const std::string& host, const std::string& port);
+    Client(boost::asio::io_service& io_service, const std::string& host, const std::string& port, long long numberOfPackages, long desiredSpeed);
 
     void transmitToServer();
 
@@ -30,17 +30,51 @@ private:
     void receiveMessages();
     void sendMessages();
 
-    int sentMessageCount = 0;
-    int receivedMessageCount = 0;
+    void processUserInput();
+
+    void updateSendingStats();
+    void updateReceiveStats();
+
+    void calculateTransmissionSpeed();
+    void showTransmissionSpeed();
+
+    std::string userCommand;
+
+    int messageSendingSlowdown = 100;
+    bool transmissionEnd = false;
+
+    long desiredSendingSpeed;
+    long long numberOfPackagesToSend;
+
+    long long totalSentMessages = 0;
+    long long totalReceivedMessages = 0;
+
+    long long totalSendingSpeed = 0;
+    long long totalReceiveSpeed = 0;
+
+    long long currentSendingSpeed = 0;
+    long long currentReceiveSpeed = 0;
+
+    boost::posix_time::ptime startOfSending;
+    boost::posix_time::ptime startOfReceive;
+    boost::posix_time::ptime endOfSending;
+    boost::posix_time::ptime endOfReceive;
+
+    boost::posix_time::ptime temporaryStartOfReceive;
+    boost::posix_time::ptime temporaryStartOfResponse;
+    boost::posix_time::ptime temporaryEndOfReceive;
+    boost::posix_time::ptime temporaryEndOfResponse;
 
     boost::array<char, RECEIVE_BUFFER_SIZE> recvBuf;
-    boost::array<char, SEND_BUFFER_SIZE> sendBuf;
+    boost::array<char, MESSAGE_SIZE> sendBuf;
 
     udp::resolver resolver;
     udp::resolver::query query;
     udp::resolver::iterator iterator;
     udp::endpoint server_endpoint;
     udp::socket socket;
+
+    void adjustSendingSpeed();
 };
 
 

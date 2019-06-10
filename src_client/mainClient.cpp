@@ -3,8 +3,9 @@
 
 int main(int argc, char *argv[]) {
 
-    if (argc != 3) {
-        std::cerr << "Required arguments: <host> <portNumber>" << std::endl;
+    if (argc != 5) {
+        std::cerr << "Required arguments: <host> <portNumber> <numberOfPackagesToSent> <desiredSendingSpeed in bytes>"
+                  << std::endl;
         return 1;
     }
 
@@ -12,8 +13,10 @@ int main(int argc, char *argv[]) {
 
     std::string host = argv[1];
     std::string port = argv[2];
+    long long numberOfPackagesToSend = std::stoll(argv[3]);
+    long desiredSendingSpeed = std::stol(argv[4]);
 
-    Client client(io_service, host, port);
+    Client client(io_service, host, port, numberOfPackagesToSend, desiredSendingSpeed);
 
     client.transmitToServer();
 
