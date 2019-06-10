@@ -8,36 +8,34 @@
 #define TRANSMISSION_END_MESSAGE "End"
 #define SERVER_DISCONNECTED_MESSSAGE "Disconnected"
 
+#define NANOSECONDS_PER_SECOND 1000000000LL
+
 #define PRECISION 100
 
 using boost::asio::ip::udp;
 using boost::thread;
 
 Client::Client(boost::asio::io_service &io_service, const std::string &host, const std::string &port,
-               long long numberOfPackages, long desiredSpeed)
+               unsigned long long numberOfPackages, unsigned long long packagesInterval)
         : resolver(udp::resolver(io_service)), query(udp::resolver::query(host, port)),
           iterator(resolver.resolve(query)), server_endpoint(iterator->endpoint()), socket(udp::socket(io_service)),
-          numberOfPackagesToSend(numberOfPackages), desiredSendingSpeed(desiredSpeed) {
+          numberOfPackagesToSend(numberOfPackages), intervalBetweenPackages(packagesInterval) {
 }
 
 void Client::sendMessages() {
     socket.send_to(boost::asio::buffer(TRANSMISSION_BEGIN_MESSAGE), server_endpoint);
     while (true) {
-        boost::this_thread::sleep(boost::posix_time::microseconds(50000));
+        boost::this_thread::sleep(boost::posix_time::microseconds(intervalBetweenPackages));
         updateSendingStats();
 
         if (totalSentMessages != numberOfPackagesToSend) {
             socket.send_to(boost::asio::buffer(sendBuf), server_endpoint);
-
-//            if (totalSentMessages % PRECISION == 0) {
-//                adjustSendingSpeed();
-//            }
         } else {
             socket.send_to(boost::asio::buffer(TRANSMISSION_END_MESSAGE), server_endpoint);
+            calculateTransmissionSpeed();
+            showTransmissionSpeed();
             break;
         }
-
-        std::cout << "Wyslalem wiadomosc numer:" << totalSentMessages << std::endl;
     }
 }
 
@@ -45,10 +43,9 @@ void Client::receiveMessages() {
 
     while (true) {
         boost::system::error_code error;
-        boost::this_thread::sleep(boost::posix_time::microseconds(20));
 
         size_t len = socket.receive_from(boost::asio::buffer(recvBuf), server_endpoint, 0, error);
-        std::string receivedMessage = std::string(reinterpret_cast<const char *>(recvBuf.data()));
+        std::string receivedMessage = std::string(recvBuf.data());
 
         if (receivedMessage.find(SERVER_DISCONNECTED_MESSSAGE) != std::string::npos) {
             std::cout << "Transmission ended" << std::endl;
@@ -57,7 +54,6 @@ void Client::receiveMessages() {
         }
 
         if (len > 0) {
-            std::cout << "Odbieram " << totalReceivedMessages << std::endl;
             updateReceiveStats();
         }
     }
@@ -85,7 +81,7 @@ void Client::transmitToServer() {
 
 void Client::processUserInput() {
     while (!transmissionEnd) {
-        boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(500));
         std::cin >> userCommand;
 
         if (userCommand == "speed") {
@@ -146,16 +142,16 @@ void Client::calculateTransmissionSpeed() {
     boost::posix_time::time_duration currentResponseDurationPosix = temporaryEndOfResponse - temporaryStartOfResponse;
     boost::posix_time::time_duration currentReceiveDurationPosix = temporaryEndOfReceive - temporaryStartOfReceive;
 
-    long long totalResponseDuration = totalResponseDurationPosix.total_milliseconds();
-    long long totalReceiveDuration = totalReceiveDurationPosix.total_milliseconds();
-    long long currentResponseDuration = currentResponseDurationPosix.total_milliseconds();
-    long long currentReceiveDuration = currentReceiveDurationPosix.total_milliseconds();
+    long long totalResponseDuration = totalResponseDurationPosix.total_nanoseconds();
+    long long totalReceiveDuration = totalReceiveDurationPosix.total_nanoseconds();
+    long long currentResponseDuration = currentResponseDurationPosix.total_nanoseconds();
+    long long currentReceiveDuration = currentReceiveDurationPosix.total_nanoseconds();
 
-    totalReceiveSpeed = (totalReceivedMessages * RECEIVE_BUFFER_SIZE * 1000) / totalReceiveDuration;
-    totalSendingSpeed = (totalSentMessages * MESSAGE_SIZE * 1000) / totalResponseDuration;
+    totalReceiveSpeed = (totalReceivedMessages * RECEIVE_BUFFER_SIZE * NANOSECONDS_PER_SECOND) / totalReceiveDuration;
+    totalSendingSpeed = (totalSentMessages * MESSAGE_SIZE * NANOSECONDS_PER_SECOND) / totalResponseDuration;
 
-    currentReceiveSpeed = (PRECISION * RECEIVE_BUFFER_SIZE * 1000) / currentReceiveDuration;
-    currentSendingSpeed = (PRECISION * MESSAGE_SIZE * 1000) / currentResponseDuration;
+    currentReceiveSpeed = (PRECISION * RECEIVE_BUFFER_SIZE * NANOSECONDS_PER_SECOND) / currentReceiveDuration;
+    currentSendingSpeed = (PRECISION * MESSAGE_SIZE * NANOSECONDS_PER_SECOND) / currentResponseDuration;
 
     if (totalReceivedMessages < PRECISION) {
         currentReceiveSpeed = totalReceiveSpeed;
@@ -164,26 +160,4 @@ void Client::calculateTransmissionSpeed() {
     if (totalSentMessages < PRECISION) {
         currentSendingSpeed = totalSendingSpeed;
     }
-}
-
-void Client::adjustSendingSpeed() {
-    calculateTransmissionSpeed();
-
-    double sendingSpeed = static_cast<double>(currentSendingSpeed);
-    double desiredSpeed = static_cast<double>(desiredSendingSpeed);
-
-
-    std:: cout << "current sending speed: " << sendingSpeed << std::endl;
-    std:: cout << "deisred sending speed: " << desiredSpeed << std::endl;
-    std::cout << "message slowdown " << messageSendingSlowdown << std::endl;
-
-
-
-    double newSlowdown = (messageSendingSlowdown * sendingSpeed) / desiredSpeed;
-
-    std::cout << newSlowdown << std::endl;
-
-//    std::cout << newSlowdown << std::endl;
-
-    messageSendingSlowdown = static_cast<long>(newSlowdown);
 }

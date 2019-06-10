@@ -24,15 +24,17 @@ using boost::asio::ip::udp;
 class Server {
 
 public:
-    Server(boost::asio::io_service& io_service, int exposedPort);
+    Server(boost::asio::io_service& io_service, unsigned exposedPort, unsigned long long responseInterval);
 
     void processUserInput();
     void start();
 
 private:
     boost::mutex mut;
+
     bool stopTransmission = false;
     bool disconnected = true;
+
     std::string userCommand;
 
     udp::endpoint remoteEndpoint;
@@ -47,6 +49,8 @@ private:
     boost::posix_time::ptime temporaryStartOfResponse;
     boost::posix_time::ptime temporaryEndOfReceive;
     boost::posix_time::ptime temporaryEndOfResponse;
+
+    unsigned long long intervalBetweenResponses;
 
     long long totalSentResponses = 0;
     long long totalReceivedMessages = 0;
