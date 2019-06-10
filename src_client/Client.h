@@ -22,7 +22,7 @@ using boost::thread;
 class Client {
 
 public:
-    Client(boost::asio::io_service& io_service, const std::string& host, const std::string& port, long long numberOfPackages, long desiredSpeed);
+    Client(boost::asio::io_service& io_service, const std::string& host, const std::string& port, unsigned long long numberOfPackages, unsigned long long packagesInterval);
 
     void transmitToServer();
 
@@ -40,11 +40,10 @@ private:
 
     std::string userCommand;
 
-    int messageSendingSlowdown = 100;
-    bool transmissionEnd = false;
+    unsigned long long intervalBetweenPackages;
+    unsigned long long numberOfPackagesToSend;
 
-    long desiredSendingSpeed;
-    long long numberOfPackagesToSend;
+    bool transmissionEnd = false;
 
     long long totalSentMessages = 0;
     long long totalReceivedMessages = 0;
@@ -73,9 +72,6 @@ private:
     udp::resolver::iterator iterator;
     udp::endpoint server_endpoint;
     udp::socket socket;
-
-    void adjustSendingSpeed();
 };
-
 
 #endif //SRC_CLIENT_TIN_GENERATOR_CLIENT_H

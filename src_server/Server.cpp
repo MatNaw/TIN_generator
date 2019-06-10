@@ -10,17 +10,19 @@
 
 #define SHUTDOWN_SERVER_COMMAND "exit"
 
+#define NANOSECONDS_PER_SECOND 1000000000LL
+
 #define PRECISION 100
 
 using boost::asio::ip::udp;
 
-Server::Server(boost::asio::io_service &io_service, int exposedPort)
-        : socket(udp::socket(io_service, udp::endpoint(udp::v4(), exposedPort))) {
+Server::Server(boost::asio::io_service &io_service, int exposedPort, unsigned long long responseInterval)
+        : socket(udp::socket(io_service, udp::endpoint(udp::v4(), exposedPort))), intervalBetweenResponses(responseInterval) {
 }
 
 void Server::processUserInput() {
     while (userCommand != SHUTDOWN_SERVER_COMMAND) {
-        boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(500));
         std::cin >> userCommand;
 
         if (userCommand == "speed") {
@@ -36,7 +38,7 @@ void Server::sendResponse() {
     size_t bytesSent;
 
     while (true) {
-        boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+        boost::this_thread::sleep(boost::posix_time::microseconds(intervalBetweenResponses));
 
         if (!stopTransmission) {
             {
@@ -60,11 +62,9 @@ void Server::receiveMessage() {
     std::cout << "Receiving messages started" << std::endl;
 
     while (true) {
-//        boost::this_thread::sleep(boost::posix_time::milliseconds(5));
-
         size_t len = socket.receive_from(boost::asio::buffer(receiveBuf), remoteEndpoint, 0, error);
 
-        std::string receivedMessage = std::string(reinterpret_cast<const char *>(receiveBuf.data()), len);
+        std::string receivedMessage = std::string(receiveBuf.data(), len);
 
         if (receivedMessage.find(TRANSMISSION_BEGIN_MESSAGE) != std::string::npos) {
             std::cout << "Receiving messages started" << std::endl;
@@ -82,7 +82,6 @@ void Server::receiveMessage() {
             updateReceiveStats();
         }
     }
-
 }
 
 void Server::start() {
@@ -96,7 +95,7 @@ void Server::start() {
             size_t len = socket.receive_from(boost::asio::buffer(receiveBuf),
                                              remoteEndpoint, 0, error);
 
-            std::string receivedMessage = std::string(reinterpret_cast<const char *>(receiveBuf.data()), len);
+            std::string receivedMessage = std::string(receiveBuf.data(), len);
 
             if (error && error != boost::asio::error::message_size)
                 throw boost::system::system_error(error);
@@ -180,16 +179,16 @@ void Server::calculateTransmissionSpeed() {
     boost::posix_time::time_duration currentResponseDurationPosix = temporaryEndOfResponse - temporaryStartOfResponse;
     boost::posix_time::time_duration currentReceiveDurationPosix = temporaryEndOfReceive - temporaryStartOfReceive;
 
-    long long totalResponseDuration = totalResponseDurationPosix.total_milliseconds();
-    long long totalReceiveDuration = totalReceiveDurationPosix.total_milliseconds();
-    long long currentResponseDuration = currentResponseDurationPosix.total_milliseconds();
-    long long currentReceiveDuration = currentReceiveDurationPosix.total_milliseconds();
+    long long totalResponseDuration = totalResponseDurationPosix.total_nanoseconds();
+    long long totalReceiveDuration = totalReceiveDurationPosix.total_nanoseconds();
+    long long currentResponseDuration = currentResponseDurationPosix.total_nanoseconds();
+    long long currentReceiveDuration = currentReceiveDurationPosix.total_nanoseconds();
 
-    totalReceiveSpeed = (totalReceivedMessages * RECEIVE_BUFFER_SIZE * 1000) / totalReceiveDuration;
-    totalResponseSpeed = (totalSentResponses * RESPONSE_SIZE * 1000) / totalResponseDuration;
+    totalReceiveSpeed = (totalReceivedMessages * RECEIVE_BUFFER_SIZE * NANOSECONDS_PER_SECOND) / totalReceiveDuration;
+    totalResponseSpeed = (totalSentResponses * RESPONSE_SIZE * NANOSECONDS_PER_SECOND) / totalResponseDuration;
 
-    currentReceiveSpeed = (PRECISION * RECEIVE_BUFFER_SIZE * 1000) / currentReceiveDuration;
-    currentResponseSpeed = (PRECISION * RESPONSE_SIZE * 1000) / currentResponseDuration;
+    currentReceiveSpeed = (PRECISION * RECEIVE_BUFFER_SIZE * NANOSECONDS_PER_SECOND) / currentReceiveDuration;
+    currentResponseSpeed = (PRECISION * RESPONSE_SIZE * NANOSECONDS_PER_SECOND) / currentResponseDuration;
 
     if (totalReceivedMessages < PRECISION) {
         currentReceiveSpeed = totalReceiveSpeed;
