@@ -32,6 +32,7 @@ public:
 private:
     boost::mutex mut;
     bool stopTransmission = false;
+    bool disconnected = true;
     std::string userCommand;
 
     udp::endpoint remoteEndpoint;
@@ -68,6 +69,8 @@ private:
 
     void calculateTransmissionSpeed();
     void showTransmissionSpeed();
+
+    void resetStats();
 };
 
 
